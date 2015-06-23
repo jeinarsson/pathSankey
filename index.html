@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script src="pathSankey.js"></script>
+<script>
+
+var nominalWidth = 500;
+var nominalHeight = 250;
+var chart = d3.pathSankey()
+              .width(nominalWidth).height(nominalHeight)
+              .selectedNodeAddress([0,0,0]);
+
+
+function initialize() {
+    var data = makeRandomData();
+    d3.select("body").append("svg").datum(data);
+    d3.select(window).on("resize",draw);
+    draw();
+}
+
+
+function getInnerWidth(selection) {
+  var cs = window.getComputedStyle(selection.node());
+  return parseInt(cs.width) - parseInt(cs.paddingLeft) - parseInt(cs.paddingRight);
+}
+
+function draw() {
+  var container = d3.select('body');
+  var width = getInnerWidth(container);
+  width = width > nominalWidth ? nominalWidth : width;
+  var height = Math.round(width * nominalHeight/nominalWidth); 
+
+  d3.select("svg")
+    .html("")
+    .attr("width", width)
+    .attr("height", height)
+    .call(chart);
+}
+
+function makeRandomData() {
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+
+  var numLayers = randInt(3,4);
+  var ret = {nodes: [], flows: []};
+  
+  // make up some nodes
+  for (var i=0; i < numLayers; i++) {
+    var nodes = [];
+    var group = {items: nodes, title: ""};
+    var layer = {items: [group], title: "Layer "+i};
+    var numNodes = randInt(4,12);
+    for (var j=0; j < numNodes; j++) {
+      nodes.push({title: "Node "+j, color: d3.rgb(randInt(20,200), randInt(20,200), randInt(20,200))});
+    }
+    ret.nodes.append(layer);
+  }
+  
+  // make up some flows
+  function getPathsRecursively(lists, n) {
+    if (n === 0) {
+      return lists[n].map(function(d){return [d];});
+    }
+    var restOfPaths = getPathsRecursively(lists, n-1);
+    var paths = [];
+    restOfPaths.forEach(function(rest) {
+      lists[n].forEach(function(element) {
+        paths.push(rest.concat([element]));
+      });
+    });
+    return paths;
+  }
+  function getPaths(lists) {
+    return getPathsRecursively(lists, lists.length-1);
+  }
+  
+  getPaths(ret.nodes.items[0].items).forEach(function(path){
+    ret.flows.push({magnitude: randInt(10,250), path: p});
+  });
+  return ret;  
+}
+
+initialize();
+</script>
+</body>
