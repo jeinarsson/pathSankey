@@ -164,8 +164,11 @@ d3.pathSankey = function() {
               node.nodeIdx = nodeIdx;
               node.uniqueId = [layerIdx, groupIdx, nodeIdx].join("-");
  
-              // set a default color
+              // convernt string colors and set a default color
               // todo: where should this go?
+              if (node.color.length) {
+                node.color = d3.hsl(node.color);
+              }
               if (!node.color) node.color = d3.hsl("#aaa");
             });
 
@@ -295,7 +298,7 @@ d3.pathSankey = function() {
             ]);});
 
       nodeGroups.selectAll("g.node-group > g > text")
-        .attr("text-anchor","end")
+        .attr("text-anchor",function(d) {return d.label == -1 ? "end" : "start";})
         .attr("dx",function(d){return d.label*(groupLabelDistance*2);})
         .attr("dy","0.3em")
         .attr("x", nodeGroupLabelx)
@@ -391,7 +394,10 @@ d3.pathSankey = function() {
       }        
     }); // selection.each()
   }
-  
+ 
+
+
+
   chart.width = function(_) {
     if (!arguments.length) return width;
     else width = +_;
@@ -416,7 +422,18 @@ d3.pathSankey = function() {
     if (!arguments.length) return selectedNodeAddress;
     else selectedNodeAddress = _;
     return chart;
-  }; 
+  };
+  chart.labelSpaceLeft = function(_) {
+    if (!arguments.length) return labelspace.left;
+    else labelspace.left = _;
+    return chart;
+  };
+  chart.labelSpaceRight = function(_) {
+    if (!arguments.length) return labelspace.right;
+    else labelspace.right = _;
+    return chart;
+  };
+
   return chart;
 };
 
